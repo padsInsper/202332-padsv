@@ -1,0 +1,242 @@
+---
+title: "Prática Avançada de Data Science e Visualization"
+author: "Laboratórios"
+format: 
+  insper-revealjs:
+    self-contained: true
+    hash-type: number
+execute:
+  freeze: true
+---
+
+## Meu papel
+
+Meu papel nessa disciplina será ajudar no aprendizado da parte técnica -- códigos etc.
+
+```{r}
+#| include: false
+library(tidyverse)
+match_min <- read_rds(here::here("data-raw/rds/match_min.rds"))
+team <- read_rds(here::here("data-raw/rds/team.rds"))
+team_attributes <- read_rds(here::here("data-raw/rds/team_attributes.rds"))
+```
+
+
+::: incremental
+
+Também posso dar pitacos nas apresentações e salvá-los em situações de desespero (atendimentos extras).
+
+:::
+
+## Lab 01
+
+Nesse lab, nosso objetivo será construir soluções em **R** e/ou **python** para problemas comuns de transformação e visualização de dados.
+
+::: incremental
+
+- 4 equipes de **4 ou 5 pessoas**:
+
+- Vamos utilizar o ChatGPT para exercícios mais difíceis. 
+
+- Eu tenho acesso ao GPT-4, vocês podem pedir para eu usar.
+
+- No final de cada exercício, discutiremos aspectos teóricos sobre as ferramentas.
+
+:::
+
+## Prêmios
+
+-   As melhores resoluções receberão stickers. A quantidade de stickers depende da dificuldade do exercício.
+
+![](img/stickers.jpg){.absolute left="25%" bottom="10vh" width="50%"}
+
+## Vamos lá!
+
+![](img/cat.gif){.absolute left="25%" bottom="10vh" width="50%"}
+
+## Exercício 1.1 (transformação) 🛑
+
+::: panel-tabset
+
+### Entrada
+
+```{r}
+#| echo: true
+glimpse(match_min)
+```
+
+### Tarefa
+
+- Selecionar as colunas `country_id`, `country_name`, `home_team_goal`, `away_team_goal`.
+- Filtrar para os campeonatos dos maiores países (Espanha, Inglaterra, Itália, França e Alemanha).
+- Criar uma coluna `total_goals`, com o total de gols.
+- Calcular a média, a mediana e o desvio padrão de gols por país
+- Ordenar o resultado de forma decrescente pela média
+
+### Saída R
+
+```{r}
+#| echo: false
+sumario <- match_min |> 
+  select(country_id, country_name, home_team_goal, away_team_goal) |> 
+  filter(country_id %in% c(21518, 1729, 4769, 7809, 10257)) |> 
+  mutate(total_goals = home_team_goal + away_team_goal) |> 
+  group_by(country_name) |> 
+  summarise(
+    media = mean(total_goals),
+    desvio_padrao = sd(total_goals),
+    mediana = median(total_goals)
+  ) |> 
+  arrange(desc(media))
+
+sumario
+```
+
+### Saída Python
+
+```{python}
+#| echo: false
+#| eval: true
+
+import pandas as pd
+pd.options.mode.chained_assignment = None
+
+df = r.match_min[['country_id', 'country_name', 'home_team_goal', 'away_team_goal']]
+df.loc[:, 'total_goals'] = df['home_team_goal'] + df['away_team_goal']
+df = df[df['country_id'].isin([21518, 1729, 4769, 7809, 10257])]
+
+df = df.groupby('country_name')['total_goals'].agg(['mean', 'median', 'std'])
+df.sort_values('mean', ascending = False)
+```
+:::
+
+## Exercício 1.2 (barras exploratório) 🛑
+
+::: panel-tabset
+
+### Resultado esperado
+
+```{r}
+knitr::include_graphics("img/plot1.2.png")
+```
+
+:::
+
+
+## Exercício 1.3 (barras otimizado) 🛑🛑
+
+::: panel-tabset
+
+### Resultado esperado
+
+```{r}
+#| out-width: 80%
+knitr::include_graphics("img/plot1.3.png")
+```
+
+### Dicas
+
+- Utilize `case_when()` ou `case_match()` para mudar os nomes dos países.
+
+- Utilize `fct_reorder()` para ordenar a coluna `country_name` adequadamente.
+
+- Utilize `scale_fill_manual()` com os valores `cores <- c("#C4161C", "#009491")`
+
+- Utilize o ChatGPT para os aspectos estéticos.
+
+:::
+
+# Discussão
+
+## Exercício 2.1 (join e pivotagem) 🛑🛑🛑
+
+::: panel-tabset
+### Entrada
+
+```{r}
+glimpse(team_attributes)
+```
+
+### Tarefa
+
+- Unir a base `team_attributes` com a base `team`
+- Filtrar para os times "Real Madrid", "Bayern", "Milan", "PSG" e "Manchester United"
+- Retirar as colunas que acabam com `_class`
+- Transformar a coluna `date` em `year`, contendo o ano
+- Calcular a média das estatísticas por tipo (`build_up_play_*`, `chance_creation_*`, `defence_*`) e empilhar as estatísticas por tipo (não necessariamente nessa ordem).
+
+
+### Saída R
+
+```{r}
+#| echo: false
+
+times <- c(243, 11, 21, 73, 47)
+
+team_filter <- team |> 
+  filter(team_fifa_api_id %in% times) |> 
+  select(-id)
+
+sumario <- team_attributes |> 
+  inner_join(team_filter, join_by(team_api_id, team_fifa_api_id)) |> 
+  select(-ends_with("class")) |> 
+  mutate(year = year(ymd_hms(date))) |> 
+  pivot_longer(c(build_up_play_speed:defence_team_width)) |> 
+  separate_wider_delim(
+    name, delim = "_", 
+    names = c("type", "metric"), 
+    too_many = "merge"
+  ) |> 
+  summarise(
+    value = mean(value, na.rm = TRUE),
+    .by = c(year, type, team_short_name, team_long_name)
+  )  
+
+sumario
+```
+
+### Saída Python
+
+Vou tentar durante a aula usando o ChatGPT 😅
+
+:::
+
+## Exercício 2.2. (linhas exploratório) 🛑🛑
+
+::: panel-tabset
+
+### Resultado esperado
+
+```{r}
+#| out-width: 80%
+knitr::include_graphics("img/plot2.2.png")
+```
+
+:::
+
+## Exercício 2.3. (linhas otimizado) 🛑🛑🛑
+
+::: panel-tabset
+
+### Resultado esperado
+
+```{r}
+#| out-width: 80%
+knitr::include_graphics("img/plot2.3.png")
+```
+
+### Dicas
+
+- Utilize `case_when()` ou `case_match()` para mudar os nomes da coluna `categoria`.
+
+- Utilize o parâmetro `legend.position=` da função `theme()`
+
+- Utilize `geom_smooth()` para montar a banda de confiança no fundo.
+
+- Utilize as cores anteriores + um cinza
+
+- Utilize o ChatGPT para os aspectos estéticos.
+
+:::
+
+# Discussão
