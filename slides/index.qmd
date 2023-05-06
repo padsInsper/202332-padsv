@@ -201,7 +201,7 @@ Vou tentar durante a aula usando o ChatGPT 😅
 
 :::
 
-## Exercício 2.2. (linhas exploratório) 🛑🛑
+## Exercício 2.2 (linhas exploratório) 🛑🛑
 
 ::: panel-tabset
 
@@ -214,7 +214,7 @@ knitr::include_graphics("img/plot2.2.png")
 
 :::
 
-## Exercício 2.3. (linhas otimizado) 🛑🛑🛑
+## Exercício 2.3 (linhas otimizado) 🛑🛑🛑
 
 ::: panel-tabset
 
