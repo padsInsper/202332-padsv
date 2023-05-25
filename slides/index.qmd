@@ -28,6 +28,8 @@ Também posso dar pitacos nas apresentações e salvá-los em situações de des
 
 :::
 
+# Lab 01
+
 ## Lab 01
 
 Nesse lab, nosso objetivo será construir soluções em **R** e/ou **python** para problemas comuns de transformação e visualização de dados.
@@ -236,6 +238,90 @@ knitr::include_graphics("img/plot2.3.png")
 - Utilize as cores anteriores + um cinza
 
 - Utilize o ChatGPT para os aspectos estéticos.
+
+:::
+
+# Discussão
+
+# Lab 02
+
+## Lab 02
+
+Nesse lab, nosso objetivo será explorar **extensões do ggplot2** e **htmlwidgets**. Vamos montar visualizações mais sofisticadas e também vamos ver gráficos interativos.
+
+::: incremental
+
+- Grupos serão os mesmos do trabalho final
+
+- Aqui o ChatGPT não vai conseguir ajudar tanto assim, mas vocês podem tentar
+
+- Eu darei uma introdução na primeira 1h
+
+- No final de cada exercício, discutiremos aspectos teóricos sobre as ferramentas.
+
+:::
+
+## Prêmios
+
+-   As melhores resoluções receberão doces. A quantidade de doces depende da dificuldade do exercício.
+
+![](img/doces.jpg){.absolute left="25%" bottom="10vh" width="50%"}
+
+## Vamos lá!
+
+![](img/cat.gif){.absolute left="25%" bottom="10vh" width="50%"}
+
+## Exercício 1 (htmlwidget) 🍪
+
+::: panel-tabset
+
+### Entrada
+
+```{r}
+#| out-width: 80%
+knitr::include_graphics("img/plot1.3.png")
+```
+
+### Resultado esperado
+
+```{r}
+readr::read_rds("../data-raw/lab02_ex1.rds") |> 
+  plotly::ggplotly()
+```
+
+### Dicas
+
+- Utilize o código do Lab01.
+
+- Utilize `plotly::ggplotly()`.
+
+- Utilize o parâmetro `legend.position=` da função `theme()` para remover a legenda.
+
+:::
+
+
+## Exercício 2 (animate) 🍪🍪🍪
+
+::: panel-tabset
+
+### Tarefa
+
+- Juntar a base de jogos com a base de times
+- Filtrar para jogos na liga espanhola.
+- Criar uma base com o total de jogos por time e por temporada (existem várias formas).
+- Filtrar para times que estiveram em todas as temporadas.
+
+### Resultado esperado
+
+```{r}
+#| out-width: 80%
+knitr::include_graphics("img/animate.gif")
+```
+
+### Dicas
+
+- Utilize `gghighlight` para destacar os times
+- Utilize `gganimate` com `transition_time()`. A temporada deve ser um valor numérico.
 
 :::
 
