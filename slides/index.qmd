@@ -286,6 +286,7 @@ knitr::include_graphics("img/plot1.3.png")
 
 ```{r}
 #| out-width: 80%
+#| fig-width: 8
 readr::read_rds("../data-raw/lab02_ex1.rds") |> 
   plotly::ggplotly()
 ```
