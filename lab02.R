@@ -240,3 +240,68 @@ dados_pnud |>
     popup = ~ paste("<b>Nome</b>:", muni_nm),
     clusterOptions = markerClusterOptions()
   )
+
+
+# grafico campo -----------------------------------------------------------
+
+## ESSE CÓDIGO ESTÁ HORRIVEL. MELHORAR
+
+todas_posicoes <- match |>
+  tidyr::unite(home_player_x, dplyr::matches("home.*x[0-9]"), remove = TRUE) |>
+  tidyr::unite(away_player_x, dplyr::matches("away.*x[0-9]"), remove = TRUE) |>
+  tidyr::unite(home_player_y, dplyr::matches("home.*y[0-9]"), remove = TRUE) |>
+  tidyr::unite(away_player_y, dplyr::matches("away.*y[0-9]"), remove = TRUE) |>
+  dplyr::rename_with(
+    \(x) stringr::str_replace(x, "player_", "player_id"),
+    dplyr::matches("_player_[0-9]+")
+  ) |>
+  tidyr::unite(away_player_id, dplyr::matches("away.*id[0-9]"), remove = TRUE) |>
+  tidyr::unite(home_player_id, dplyr::matches("home.*id[0-9]"), remove = TRUE) |>
+  tidyr::pivot_longer(c(
+    home_player_x, away_player_x, home_player_y, away_player_y,
+    away_player_id, home_player_id
+  )) |>
+  dplyr::select(match_api_id, name, value) |>
+  tidyr::separate_rows(value, sep = "_", convert = TRUE) |>
+  dplyr::group_by(match_api_id, name) |>
+  dplyr::mutate(position_id = seq_len(dplyr::n())) |>
+  dplyr::ungroup()
+
+todas_posicoes_wide <- todas_posicoes |>
+  tidyr::separate(name, c("home_away", "player", "type"), sep = "_") |>
+  dplyr::select(-player) |>
+  tidyr::pivot_wider(names_from = type, values_from = value) |>
+  dplyr::mutate(
+    y = dplyr::if_else(home_away == "home", y, max(y, na.rm = TRUE) - y + 2),
+    x = dplyr::if_else(home_away == "home", x, max(x, na.rm = TRUE) - x + 1)
+  )
+
+library(emojifont)
+
+testLabels <- fontawesome(c('fa-android'))
+todas_posicoes_wide |>
+  dplyr::mutate(lab = testLabels) |>
+  dplyr::filter(!is.na(x)) |>
+  dplyr::filter(match_api_id %in% sample(unique(match_api_id), 9)) |>
+  ggplot2::ggplot() +
+  ggplot2::aes(x, y, colour = home_away) +
+  ggplot2::geom_text(ggplot2::aes(label = lab), size = 5, family='fontawesome-webfont') +
+  # emojifont::geom_fontawesome("fa-github", color='black') +
+  ggplot2::facet_wrap(~match_api_id) +
+  ggplot2::theme_minimal() +
+  ggplot2::scale_x_continuous(breaks = c(3.5, 6.5)) +
+  ggplot2::scale_y_continuous(breaks = c(2, 4, 6, 8, 10) +.5) +
+  ggplot2::geom_hline(yintercept = 6.5, colour = "white", linetype = 1) +
+  ggplot2::scale_color_viridis_d(begin = .6, end = .8, option = 1) +
+  ggplot2::theme(
+    # plot.background = ggplot2::element_rect(fill = "darkgreen"),
+    panel.background = ggplot2::element_rect(fill = "darkgreen"),
+    axis.text = ggplot2::element_blank(),
+    panel.grid.minor = ggplot2::element_blank(),
+    panel.grid.major = ggplot2::element_line(linetype = "dashed"),
+    panel.border = ggplot2::element_rect(fill = "transparent", color = "white"),
+    legend.position = "bottom"
+  ) +
+  ggplot2::labs(x = "", y = "") +
+  ggplot2::coord_fixed(ratio = 1)
+
